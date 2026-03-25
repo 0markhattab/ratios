@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ratios &amp; Unit Rates — Worksheet — Mr. Omar</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    min-height: 100vh;
+    background: #0B1F3A;
+    color: #fff;
+    font-family: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  input:focus, textarea:focus { outline: none; }
+  button { font-family: inherit; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 999px; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ─── THEME ────────────────────────────────────────────────────────────────────
+const C = {
+  navy: "#0B1F3A", blue: "#1F6FEB", teal: "#0F766E", orange: "#F59E0B",
+  gold: "#FBBF24", sky: "#60A5FA", ink: "#111827", muted: "#4B5563",
+  paper: "#F8FAFC", coral: "#ef476f", green: "#06d6a0", mint: "#34d399",
+};
+
+const SECTIONS = ["welcome","vocab","writing","order","partwhole","unitrate","realworld","mixed","exit","results"];
+
+// ─── QUESTION DATA ────────────────────────────────────────────────────────────
+
+const VOCAB_QUESTIONS = [
+  { term: "Ratio", options: ["A comparison of two quantities","The total of two numbers","The difference between two quantities","A type of fraction that is always less than 1"], correct: 0 },
+  { term: "Rate", options: ["A ratio that compares same units","Any number written as a fraction","A ratio that compares quantities with different units","Another word for percent"], correct: 2 },
+  { term: "Unit Rate", options: ["A rate where the first number is 1","A rate where the second number is 1","Any rate written as a fraction","A rate that uses only whole numbers"], correct: 1 },
+  { term: '"For every"', options: ["A phrase used to describe subtraction","A phrase that signals a ratio relationship","A phrase only used for unit rates","A phrase that means equal to"], correct: 1 },
+  { term: "Equivalent Ratios", options: ["Ratios that look the same","Ratios that have the same value","Ratios that add up to 1","Ratios that are always whole numbers"], correct: 1 },
+];
+
+const WRITING_RATIOS = [
+  {
+    scenario: "A fruit bowl has 5 apples and 3 oranges.",
+    question: "What is the ratio of apples to oranges?",
+    words: "5 to 3", colon: "5:3", fraction: "5/3",
+    visual: { type: "fruits", apples: 5, oranges: 3 },
+  },
+  {
+    scenario: "A class has 12 boys and 14 girls.",
+    question: "What is the ratio of boys to girls?",
+    words: "12 to 14", colon: "12:14", fraction: "12/14",
+    visual: { type: "people", boys: 12, girls: 14 },
+  },
+  {
+    scenario: "A necklace has 8 red beads and 6 white beads.",
+    question: "What is the ratio of red beads to white beads?",
+    words: "8 to 6", colon: "8:6", fraction: "8/6",
+    visual: { type: "beads", red: 8, white: 6 },
+  },
+];
+
+const ORDER_QUESTIONS = [
+  {
+    scenario: "There are 4 cats and 7 dogs at the pet store.",
+    parts: [
+      { q: "Cats to dogs", answer: "4:7" },
+      { q: "Dogs to cats", answer: "7:4" },
+    ]
+  },
+  {
+    scenario: "A bag has 9 red marbles and 5 blue marbles.",
+    parts: [
+      { q: "Red to blue", answer: "9:5" },
+      { q: "Blue to red", answer: "5:9" },
+    ]
+  },
+  {
+    scenario: "A garden has 10 roses and 6 tulips.",
+    parts: [
+      { q: "Roses to tulips", answer: "10:6" },
+      { q: "Tulips to roses", answer: "6:10" },
+    ]
+  },
+];
+
+const PARTWHOLE_QUESTIONS = [
+  {
+    scenario: "A jar has 3 red gumballs and 7 blue gumballs.",
+    parts: [
+      { q: "Red to blue (part to part)", answer: "3:7", type: "part-to-part" },
+      { q: "Red to total (part to whole)", answer: "3:10", type: "part-to-whole" },
+      { q: "Blue to total (part to whole)", answer: "7:10", type: "part-to-whole" },
+    ]
+  },
+  {
+    scenario: "A team has 6 sixth-graders and 4 seventh-graders.",
+    parts: [
+      { q: "Sixth-graders to seventh-graders", answer: "6:4", type: "part-to-part" },
+      { q: "Seventh-graders to total", answer: "4:10", type: "part-to-whole" },
+    ]
+  },
+];
+
+const UNITRATE_PROBLEMS = [
+  { problem: "5 notebooks cost $15.", question: "What is the cost per notebook?", total: 15, count: 5, unit: "dollars per notebook", answer: "3", prefix: "$", visual: "notebooks" },
+  { problem: "A car travels 240 miles in 4 hours.", question: "What is the speed in miles per hour?", total: 240, count: 4, unit: "miles per hour", answer: "60", prefix: "", visual: "car" },
+  { problem: "A baker makes 36 cookies in 3 batches.", question: "How many cookies per batch?", total: 36, count: 3, unit: "cookies per batch", answer: "12", prefix: "", visual: "cookies" },
+  { problem: "8 gallons of gas cost $28.", question: "What is the price per gallon?", total: 28, count: 8, unit: "dollars per gallon", answer: "3.50", prefix: "$", visual: "gas" },
+];
+
+const REALWORLD_PROBLEMS = [
+  {
+    scenario: "You're at the grocery store comparing two brands of juice.",
+    brandA: { name: "Sunny Sip", amount: "64 oz", price: "$4.00" },
+    brandB: { name: "Fresh Squeeze", amount: "48 oz", price: "$3.60" },
+    question: "Which brand is the better deal? Find the unit price (price per ounce) for each.",
+    answerA: "0.0625", answerB: "0.075",
+    better: "A",
+    explanation: "Sunny Sip costs about $0.06 per ounce while Fresh Squeeze costs about $0.08 per ounce. Sunny Sip is the better deal!",
+  },
+  {
+    scenario: "Two runners are training for a race.",
+    brandA: { name: "Amir", amount: "3 hours", price: "15 miles" },
+    brandB: { name: "Bella", amount: "4 hours", price: "24 miles" },
+    question: "Who runs faster? Find each runner's speed in miles per hour.",
+    answerA: "5", answerB: "6",
+    better: "B",
+    explanation: "Amir runs 5 mph while Bella runs 6 mph. Bella is faster!",
+  },
+];
+
+const MIXED_PRACTICE = [
+  { type: "mc", question: 'A recipe uses 2 cups of flour and 3 cups of sugar. What is the ratio of flour to sugar?', options: ["3:2","2:3","2:5","3:5"], correct: 1 },
+  { type: "mc", question: "Which of these is a unit rate?", options: ["6 apples for $3","$2.50 per pound","12 eggs in 2 cartons","100 miles in 2 hours"], correct: 1 },
+  { type: "mc", question: "A store sells 4 pens for $10. What is the unit price?", options: ["$4.00 per pen","$2.50 per pen","$0.40 per pen","$2.00 per pen"], correct: 1 },
+  { type: "mc", question: "If the ratio of cats to dogs is 5:8, what is the ratio of cats to total animals?", options: ["5:8","8:5","5:13","8:13"], correct: 2 },
+  { type: "mc", question: 'A car uses 10 gallons of gas to drive 300 miles. The unit rate is "30 miles per gallon." What does this mean?', options: ["The car uses 30 gallons total","The car drives 30 miles for every 1 gallon of gas","The car needs 30 stops for gas","The gas costs $30"], correct: 1 },
+  { type: "mc", question: "Which pair are equivalent ratios?", options: ["2:3 and 3:2","4:6 and 2:3","1:2 and 3:4","5:10 and 3:5"], correct: 1 },
+];
+
+const EXIT_TICKET = [
+  { type: "fill", question: "A bag has 7 blue marbles and 9 green marbles. Write the ratio of blue to total marbles using a colon.", answer: "7:16" },
+  { type: "fill", question: "24 granola bars cost $12. What is the unit price? Write just the number (in dollars).", answer: "0.50" },
+  { type: "mc", question: "A ratio compares ___.", options: ["two quantities","only prices","only speeds","three quantities"], correct: 0 },
+  { type: "mc", question: "A unit rate tells how much for ___.", options: ["2","10","100","1"], correct: 3 },
+];
+
+// ─── UTILITY ──────────────────────────────────────────────────────────────────
+
+function generateCode(name, scores) {
+  const total = Object.values(scores).reduce((a,b) => a+b, 0);
+  const ts = Date.now().toString(36).slice(-4).toUpperCase();
+  const initials = name.trim().split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0,3);
+  return `${initials}-${total}-${ts}`;
+}
+
+// ─── SHARED COMPONENTS ───────────────────────────────────────────────────────
+
+const nextBtnStyle = {
+  padding: "14px 40px", fontSize: 15, fontWeight: 800, letterSpacing: ".04em",
+  border: "none", borderRadius: 999, cursor: "pointer", textTransform: "uppercase",
+  background: `linear-gradient(135deg, ${C.teal}, ${C.blue})`, color: "#fff",
+  transition: "all .3s", boxShadow: "0 4px 20px rgba(31,111,235,0.3)",
+};
+
+function ProgressBar({ current, total }) {
+  const pct = Math.round((current / (total - 1)) * 100);
+  return (
+    <div style={{ width:"100%", background:"rgba(255,255,255,0.06)", borderRadius:999, height:8, overflow:"hidden" }}>
+      <div style={{ width:pct+"%", height:"100%", background:`linear-gradient(90deg, ${C.teal}, ${C.blue}, ${C.orange})`, borderRadius:999, transition:"width 0.5s cubic-bezier(.4,0,.2,1)" }} />
+    </div>
+  );
+}
+
+function SectionNav({ idx, onNav }) {
+  const labels = { welcome:"Start", vocab:"Vocab", writing:"Write", order:"Order", partwhole:"Part/Whole", unitrate:"Unit Rate", realworld:"Real World", mixed:"Mixed", exit:"Exit Ticket", results:"Results" };
+  return (
+    <div style={{ display:"flex", gap:5, flexWrap:"wrap", justifyContent:"center", marginBottom:4 }}>
+      {SECTIONS.map((s, i) => (
+        <button key={s} onClick={() => onNav(i)} style={{
+          padding:"5px 10px", fontSize:10, fontWeight: i===idx ? 800 : 500, letterSpacing:".03em",
+          border:"none", borderRadius:999, cursor:"pointer",
+          background: i===idx ? `linear-gradient(135deg,${C.teal},${C.blue})` : "rgba(255,255,255,0.06)",
+          color: i===idx ? "#fff" : "rgba(255,255,255,0.4)", transition:"all .25s", textTransform:"uppercase",
+        }}>{labels[s]}</button>
+      ))}
+    </div>
+  );
+}
+
+function SectionHeader({ icon, title, subtitle }) {
+  return (
+    <div style={{ marginBottom: 28, animation: "fadeUp .5s ease" }}>
+      <div style={{ fontSize: 36, marginBottom: 8 }}>{icon}</div>
+      <h2 style={{ fontSize: 24, fontWeight: 900, color: "#fff", marginBottom: 6, lineHeight: 1.2 }}>{title}</h2>
+      <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>{subtitle}</p>
+    </div>
+  );
+}
+
+function OptionButton({ text, selected, correct, revealed, onClick }) {
+  let bg = "rgba(255,255,255,0.04)", border = "1px solid rgba(255,255,255,0.1)", color = "rgba(255,255,255,0.85)";
+  if (selected && !revealed) { bg = `rgba(31,111,235,0.15)`; border = `1px solid ${C.blue}`; color = "#fff"; }
+  if (revealed && selected && correct) { bg = "rgba(6,214,160,0.18)"; border = `1px solid ${C.green}`; color = C.green; }
+  if (revealed && selected && !correct) { bg = "rgba(239,71,111,0.18)"; border = `1px solid ${C.coral}`; color = C.coral; }
+  if (revealed && !selected && correct) { bg = "rgba(6,214,160,0.08)"; border = `1px solid rgba(6,214,160,0.4)`; color = C.green; }
+  return (
+    <button onClick={onClick} disabled={revealed} style={{
+      display:"block", width:"100%", textAlign:"left", padding:"12px 16px", fontSize:14, lineHeight:1.45,
+      fontFamily:"'DM Sans',sans-serif", background:bg, border, color, borderRadius:10,
+      cursor: revealed ? "default" : "pointer", transition:"all .2s", marginBottom:8,
+    }}>
+      {text}
+      {revealed && selected && correct && <span style={{ float:"right" }}>✓</span>}
+      {revealed && selected && !correct && <span style={{ float:"right" }}>✗</span>}
+    </button>
+  );
+}
+
+function Callout({ color, title, children, style: s }) {
+  return (
+    <div style={{ background: color + "12", border: `1px solid ${color}40`, borderRadius: 12, padding: "14px 18px", marginBottom: 14, ...s }}>
+      {title && <div style={{ fontSize: 11, fontWeight: 800, color: color, textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 8 }}>{title}</div>}
+      <div style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", lineHeight: 1.6 }}>{children}</div>
+    </div>
+  );
+}
+
+function BeadVisual({ blue = 0, gold = 0, red = 0, white = 0, size = 16, style: s }) {
+  const beads = [
+    ...Array(blue).fill(C.blue),
+    ...Array(red).fill(C.coral),
+    ...Array(gold).fill(C.gold),
+    ...Array(white).fill("#e2e8f0"),
+  ];
+  return (
+    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", padding: "10px 0", ...s }}>
+      {beads.map((c, i) => (
+        <div key={i} style={{
+          width: size, height: size, borderRadius: "50%", background: c,
+          boxShadow: `0 2px 8px ${c}40`, animation: `popIn .3s ease ${i * 0.04}s both`,
+        }} />
+      ))}
+    </div>
+  );
+}
+
+function FruitVisual({ apples, oranges }) {
+  return (
+    <div style={{ display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center", padding:"10px 0" }}>
+      {Array(apples).fill(0).map((_, i) => <span key={"a"+i} style={{ fontSize:22, animation:`popIn .3s ease ${i*0.05}s both` }}>🍎</span>)}
+      {Array(oranges).fill(0).map((_, i) => <span key={"o"+i} style={{ fontSize:22, animation:`popIn .3s ease ${(apples+i)*0.05}s both` }}>🍊</span>)}
+    </div>
+  );
+}
+
+function RatioTableVisual({ label1, label2, val1, val2, unitVal1, unitVal2, showAnswer }) {
+  const cellStyle = { padding: "8px 14px", textAlign: "center", fontSize: 14, fontWeight: 700 };
+  return (
+    <div style={{ display:"inline-block", borderRadius:10, overflow:"hidden", border:`1px solid rgba(255,255,255,0.12)`, margin:"8px 0" }}>
+      <table style={{ borderCollapse:"collapse" }}>
+        <thead>
+          <tr style={{ background:"rgba(255,255,255,0.06)" }}>
+            <th style={{ ...cellStyle, color:"rgba(255,255,255,0.4)", fontWeight:600, minWidth:90 }}></th>
+            <th style={{ ...cellStyle, color:C.blue, minWidth:70 }}>Unit</th>
+            <th style={{ ...cellStyle, color:C.orange, minWidth:70 }}>Given</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style={{ borderTop:"1px solid rgba(255,255,255,0.08)" }}>
+            <td style={{ ...cellStyle, color:"rgba(255,255,255,0.6)" }}>{label1}</td>
+            <td style={{ ...cellStyle, color: showAnswer ? C.blue : "rgba(255,255,255,0.3)" }}>{showAnswer ? unitVal1 : "?"}</td>
+            <td style={{ ...cellStyle, color:"rgba(255,255,255,0.85)" }}>{val1}</td>
+          </tr>
+          <tr style={{ borderTop:"1px solid rgba(255,255,255,0.08)" }}>
+            <td style={{ ...cellStyle, color:"rgba(255,255,255,0.6)" }}>{label2}</td>
+            <td style={{ ...cellStyle, color: showAnswer ? C.orange : "rgba(255,255,255,0.3)" }}>{showAnswer ? unitVal2 : "?"}</td>
+            <td style={{ ...cellStyle, color:"rgba(255,255,255,0.85)" }}>{val2}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function DoubleNumberLine({ topLabel, bottomLabel, topVals, bottomVals, showAnswer }) {
+  return (
+    <div style={{ padding:"16px 0 20px", position:"relative" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+        <span style={{ fontSize:11, fontWeight:700, color:C.blue, minWidth:50 }}>{topLabel}</span>
+        <div style={{ flex:1, height:3, background:C.blue, borderRadius:2, position:"relative" }}>
+          {topVals.map((v, i) => (
+            <div key={i} style={{ position:"absolute", left: i === 0 ? "0%" : i === 1 ? "33%" : "100%", transform:"translateX(-50%)" }}>
+              <div style={{ width:2, height:10, background:C.blue, margin:"0 auto", marginTop:-3 }}/>
+              <div style={{ fontSize:12, fontWeight:700, color: (i===1 && !showAnswer) ? "rgba(255,255,255,0.3)" : C.sky, textAlign:"center", marginTop:2 }}>
+                {(i===1 && !showAnswer) ? "?" : v}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ height:14 }}/>
+      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+        <span style={{ fontSize:11, fontWeight:700, color:C.teal, minWidth:50 }}>{bottomLabel}</span>
+        <div style={{ flex:1, height:3, background:C.teal, borderRadius:2, position:"relative" }}>
+          {bottomVals.map((v, i) => (
+            <div key={i} style={{ position:"absolute", left: i === 0 ? "0%" : i === 1 ? "33%" : "100%", transform:"translateX(-50%)" }}>
+              <div style={{ width:2, height:10, background:C.teal, margin:"0 auto", marginTop:-3 }}/>
+              <div style={{ fontSize:12, fontWeight:700, color: (i===1 && !showAnswer) ? "rgba(255,255,255,0.3)" : C.mint, textAlign:"center", marginTop:2 }}>
+                {(i===1 && !showAnswer) ? "?" : v}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {showAnswer && (
+        <div style={{ textAlign:"center", marginTop:8 }}>
+          <span style={{ fontSize:11, color:C.orange, fontWeight:700 }}>÷ to find 1 unit</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── WELCOME ──────────────────────────────────────────────────────────────────
+
+function Welcome({ onNext, studentName, setStudentName }) {
+  return (
+    <div style={{ textAlign: "center", maxWidth: 520, margin: "0 auto", animation: "fadeUp .6s ease" }}>
+      <div style={{ fontSize: 64, marginBottom: 12, animation: "float 3s ease-in-out infinite" }}>📐</div>
+      <h1 style={{ fontSize: 36, fontWeight: 900, lineHeight: 1.15, marginBottom: 8 }}>
+        <span style={{ background: `linear-gradient(135deg, ${C.sky}, ${C.teal}, ${C.orange})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Ratios & Unit Rates</span>
+      </h1>
+      <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 14, marginBottom: 6 }}>Lesson 1 Worksheet — Grade 6 Math</p>
+      <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, marginBottom: 32 }}>Mr. Omar · Austin Peace Academy</p>
+
+      <Callout color={C.teal} title="What you'll practice">
+        Writing ratios in 3 ways · Understanding order in ratios · Part-to-part vs part-to-whole · Finding unit rates · Solving real-world rate problems
+      </Callout>
+
+      <Callout color={C.orange} title="How this works">
+        Work through each section in order. Your answers are graded automatically. At the end, you'll get a <strong>completion code</strong> to share with Mr. Omar.
+      </Callout>
+
+      <div style={{ margin: "28px 0" }}>
+        <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.5)", marginBottom: 8, textTransform: "uppercase", letterSpacing: ".06em" }}>Enter your full name</label>
+        <input
+          value={studentName} onChange={e => setStudentName(e.target.value)}
+          placeholder="First and Last Name"
+          style={{
+            width: "100%", maxWidth: 340, padding: "14px 20px", fontSize: 16, fontWeight: 600,
+            background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)",
+            borderRadius: 12, color: "#fff", textAlign: "center", fontFamily: "'DM Sans',sans-serif",
+          }}
+        />
+      </div>
+
+      <button
+        onClick={onNext}
+        disabled={!studentName.trim()}
+        style={{
+          ...nextBtnStyle,
+          opacity: studentName.trim() ? 1 : 0.35,
+          cursor: studentName.trim() ? "pointer" : "not-allowed",
+        }}
+      >Let's Go! →</button>
+    </div>
+  );
+}
+
+// ─── SECTION 1: VOCABULARY ───────────────────────────────────────────────────
+
+function VocabSection({ onNext, score, setScore }) {
+  const [answers, setAnswers] = useState({});
+  const [revealed, setRevealed] = useState({});
+  const allDone = Object.keys(revealed).length === VOCAB_QUESTIONS.length;
+
+  function select(qi, oi) {
+    if (revealed[qi] !== undefined) return;
+    setAnswers(a => ({ ...a, [qi]: oi }));
+  }
+  function check(qi) {
+    if (answers[qi] === undefined) return;
+    setRevealed(r => ({ ...r, [qi]: true }));
+  }
+
+  useEffect(() => {
+    if (allDone) {
+      const pts = VOCAB_QUESTIONS.reduce((s, q, i) => s + (answers[i] === q.correct ? 1 : 0), 0);
+      setScore(sc => ({ ...sc, vocab: pts }));
+    }
+  }, [allDone]);
+
+  return (
+    <div style={{ animation: "fadeUp .5s ease" }}>
+      <SectionHeader icon="📖" title="Section 1: Vocabulary Match" subtitle="Match each math term to its correct definition. Tap your choice, then check." />
+      {VOCAB_QUESTIONS.map((q, qi) => (
+        <div key={qi} style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:14, padding:"18px 20px", marginBottom:16, animation:`fadeUp .4s ease ${qi*0.08}s both` }}>
+          <div style={{ fontSize:11, color:C.blue, fontWeight:800, textTransform:"uppercase", letterSpacing:".08em", marginBottom:4 }}>Term {qi+1}</div>
+          <div style={{ fontSize:18, fontWeight:800, color:"#fff", marginBottom:14 }}>{q.term}</div>
+          {q.options.map((opt, oi) => (
+            <OptionButton key={oi} text={opt} selected={answers[qi]===oi} correct={oi===q.correct} revealed={!!revealed[qi]} onClick={() => select(qi,oi)} />
+          ))}
+          {!revealed[qi] && answers[qi] !== undefined && (
+            <button onClick={() => check(qi)} style={{ marginTop:4, padding:"8px 24px", fontSize:12, fontWeight:700, border:`1px solid ${C.blue}`, borderRadius:999, background:"transparent", color:C.blue, cursor:"pointer" }}>Check Answer</button>
+          )}
+          {revealed[qi] && answers[qi] !== VOCAB_QUESTIONS[qi].correct && (
+            <div style={{ marginTop:8, fontSize:13, color:C.coral }}>The correct answer is: <strong>{q.options[q.correct]}</strong></div>
+          )}
+        </div>
+      ))}
+      {allDone && (
+        <div style={{ textAlign:"center", marginTop:16, animation:"popIn .4s ease" }}>
+          <div style={{ color:C.green, fontSize:15, fontWeight:700, marginBottom:14 }}>Section complete! {score.vocab || 0}/{VOCAB_QUESTIONS.length} correct</div>
+          <button onClick={onNext} style={nextBtnStyle}>Next Section →</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SECTION 2: WRITING RATIOS ──────────────────────────────────────────────
+
+function WritingSection({ onNext, score, setScore }) {
+  const [answers, setAnswers] = useState({});
+  const [checked, setChecked] = useState({});
+  const total = WRITING_RATIOS.length * 3;
+  const allChecked = Object.keys(checked).length === WRITING_RATIOS.length;
+
+  function update(qi, field, val) {
+    setAnswers(a => ({ ...a, [qi]: { ...(a[qi]||{}), [field]: val } }));
+  }
+  function check(qi) {
+    setChecked(c => ({ ...c, [qi]: true }));
+  }
+
+  useEffect(() => {
+    if (allChecked) {
+      let pts = 0;
+      WRITING_RATIOS.forEach((wr, qi) => {
+        const a = answers[qi] || {};
+        if ((a.words||"").trim().toLowerCase() === wr.words.toLowerCase()) pts++;
+        if ((a.colon||"").trim().replace(/\s/g,"") === wr.colon) pts++;
+        if ((a.fraction||"").trim().replace(/\s/g,"") === wr.fraction) pts++;
+      });
+      setScore(sc => ({ ...sc, writing: pts }));
+    }
+  }, [allChecked]);
+
+  const inputStyle = {
+    padding:"8px 12px", fontSize:15, fontWeight:700, fontFamily:"'JetBrains Mono',monospace",
+    background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.15)",
+    borderRadius:8, color:"#fff", width:120, textAlign:"center",
+  };
+
+  return (
+    <div style={{ animation:"fadeUp .5s ease" }}>
+      <SectionHeader icon="✏️" title="Section 2: Writing Ratios 3 Ways" subtitle="Remember N.O.W. — Name the quantities, keep the Order, and Write it three ways." />
+      <Callout color={C.blue} title="The 3 ways">
+        <strong>Words:</strong> "5 to 3" &nbsp;&nbsp; <strong>Colon:</strong> 5:3 &nbsp;&nbsp; <strong>Fraction:</strong> 5/3
+      </Callout>
+
+      {WRITING_RATIOS.map((wr, qi) => (
+        <div key={qi} style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:14, padding:"18px 20px", marginBottom:18, animation:`fadeUp .4s ease ${qi*0.1}s both` }}>
+          <div style={{ fontSize:11, color:C.teal, fontWeight:800, textTransform:"uppercase", letterSpacing:".08em", marginBottom:6 }}>Problem {qi+1}</div>
+          <div style={{ fontSize:15, fontWeight:700, color:"#fff", marginBottom:6 }}>{wr.scenario}</div>
+          <div style={{ fontSize:14, color:"rgba(255,255,255,0.6)", marginBottom:10 }}>{wr.question}</div>
+
+          {wr.visual.type === "fruits" && <FruitVisual apples={wr.visual.apples} oranges={wr.visual.oranges} />}
+          {wr.visual.type === "beads" && <BeadVisual red={wr.visual.red} white={wr.visual.white} />}
+          {wr.visual.type === "people" && (
+            <div style={{ display:"flex", gap:4, flexWrap:"wrap", justifyContent:"center", padding:"8px 0" }}>
+              {Array(wr.visual.boys).fill(0).map((_,i) => <span key={"b"+i} style={{ fontSize:18 }}>👦</span>)}
+              {Array(wr.visual.girls).fill(0).map((_,i) => <span key={"g"+i} style={{ fontSize:18 }}>👧</span>)}
+            </div>
+          )}
+
+          <div style={{ display:"flex", gap:12, flexWrap:"wrap", alignItems:"center", marginTop:12 }}>
+            <div>
+              <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)", fontWeight:700, marginBottom:4, textTransform:"uppercase" }}>Words</div>
+              <input style={inputStyle} placeholder="_ to _" value={(answers[qi]||{}).words||""} onChange={e => update(qi,"words",e.target.value)} disabled={!!checked[qi]} />
+            </div>
+            <div>
+              <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)", fontWeight:700, marginBottom:4, textTransform:"uppercase" }}>Colon</div>
+              <input style={inputStyle} placeholder="_:_" value={(answers[qi]||{}).colon||""} onChange={e => update(qi,"colon",e.target.value)} disabled={!!checked[qi]} />
+            </div>
+            <div>
+              <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)", fontWeight:700, marginBottom:4, textTransform:"uppercase" }}>Fraction</div>
+              <input style={inputStyle} placeholder="_/_" value={(answers[qi]||{}).fraction||""} onChange={e => update(qi,"fraction",e.target.value)} disabled={!!checked[qi]} />
+            </div>
+          </div>
+
+          {!checked[qi] && (
+            <button onClick={() => check(qi)} style={{ marginTop:12, padding:"8px 24px", fontSize:12, fontWeight:700, border:`1px solid ${C.teal}`, borderRadius:999, background:"transparent", color:C.teal, cursor:"pointer" }}>Check Answers</button>
+          )}
+          {checked[qi] && (
+            <div style={{ marginTop:12, fontSize:13, color:C.green }}>
+              ✓ Correct answers: <strong>{wr.words}</strong> &nbsp;|&nbsp; <strong>{wr.colon}</strong> &nbsp;|&nbsp; <strong>{wr.fraction}</strong>
+            </div>
+          )}
+        </div>
+      ))}
+
+      {allChecked && (
+        <div style={{ textAlign:"center", marginTop:16, animation:"popIn .4s ease" }}>
+          <div style={{ color:C.green, fontSize:15, fontWeight:700, marginBottom:14 }}>Section complete! {score.writing || 0}/{total} correct</div>
+          <button onClick={onNext} style={nextBtnStyle}>Next Section →</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SECTION 3: ORDER MATTERS ────────────────────────────────────────────────
+
+function OrderSection({ onNext, score, setScore }) {
+  const [answers, setAnswers] = useState({});
+  const [checked, setChecked] = useState({});
+  const totalParts = ORDER_QUESTIONS.reduce((s, q) => s + q.parts.length, 0);
+  const allChecked = Object.keys(checked).length === ORDER_QUESTIONS.length;
+
+  function update(qi, pi, val) {
+    setAnswers(a => ({ ...a, [`${qi}-${pi}`]: val }));
+  }
+  function check(qi) { setChecked(c => ({ ...c, [qi]: true })); }
+
+  useEffect(() => {
+    if (allChecked) {
+      let pts = 0;
+      ORDER_QUESTIONS.forEach((q, qi) => {
+        q.parts.forEach((p, pi) => {
+          if ((answers[`${qi}-${pi}`]||"").replace(/\s/g,"") === p.answer) pts++;
+        });
+      });
+      setScore(sc => ({ ...sc, order: pts }));
+    }
+  }, [allChecked]);
+
+  const inputStyle = {
+    padding:"8px 12px", fontSize:16, fontWeight:700, fontFamily:"'JetBrains Mono',monospace",
+    background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.15)",
+    borderRadius:8, color:"#fff", width:100, textAlign:"center",
+  };
+
+  return (
+    <div style={{ animation:"fadeUp .5s ease" }}>
+      <SectionHeader icon="🔄" title="Section 3: Order Matters!" subtitle="The same objects, but DIFFERENT ratios depending on the order. Write each ratio using a colon." />
+
+      <Callout color={C.orange} title="Remember">
+        <strong>Blue to gold = 3:2</strong> is NOT the same as <strong>gold to blue = 2:3</strong>. Always match the order of the words!
+      </Callout>
+
+      {ORDER_QUESTIONS.map((q, qi) => (
+        <div key={qi} style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:14, padding:"18px 20px", marginBottom:18, animation:`fadeUp .4s ease ${qi*0.1}s both` }}>
+          <div style={{ fontSize:15, fontWeight:700, color:"#fff", marginBottom:14 }}>{q.scenario}</div>
+          <div style={{ display:"flex", gap:16, flexWrap:"wrap" }}>
+            {q.parts.map((p, pi) => (
+              <div key={pi}>
+                <div style={{ fontSize:13, color:"rgba(255,255,255,0.6)", marginBottom:6 }}>{p.q} =</div>
+                <input style={{
+                  ...inputStyle,
+                  borderColor: checked[qi] ? ((answers[`${qi}-${pi}`]||"").replace(/\s/g,"") === p.answer ? C.green : C.coral) : "rgba(255,255,255,0.15)",
+                }} value={answers[`${qi}-${pi}`]||""} onChange={e => update(qi,pi,e.target.value)} disabled={!!checked[qi]} />
+                {checked[qi] && (answers[`${qi}-${pi}`]||"").replace(/\s/g,"") !== p.answer && (
+                  <div style={{ fontSize:12, color:C.coral, marginTop:4 }}>→ {p.answer}</div>
+                )}
+              </div>
+            ))}
+          </div>
+          {!checked[qi] && (
+            <button onClick={() => check(qi)} style={{ marginTop:12, padding:"8px 24px", fontSize:12, fontWeight:700, border:`1px solid ${C.orange}`, borderRadius:999, background:"transparent", color:C.orange, cursor:"pointer" }}>Check</button>
+          )}
+        </div>
+      ))}
+
+      {allChecked && (
+        <div style={{ textAlign:"center", marginTop:16, animation:"popIn .4s ease" }}>
+          <div style={{ color:C.green, fontSize:15, fontWeight:700, marginBottom:14 }}>Section complete! {score.order || 0}/{totalParts} correct</div>
+          <button onClick={onNext} style={nextBtnStyle}>Next Section →</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SECTION 4: PART-TO-PART vs PART-TO-WHOLE ──────────────────────────────
+
+function PartWholeSection({ onNext, score, setScore }) {
+  const [answers, setAnswers] = useState({});
+  const [checked, setChecked] = useState({});
+  const totalParts = PARTWHOLE_QUESTIONS.reduce((s, q) => s + q.parts.length, 0);
+  const allChecked = Object.keys(checked).length === PARTWHOLE_QUESTIONS.length;
+
+  function update(qi, pi, val) {
+    setAnswers(a => ({ ...a, [`${qi}-${pi}`]: val }));
+  }
+  function check(qi) { setChecked(c => ({ ...c, [qi]: true })); }
+
+  useEffect(() => {
+    if (allChecked) {
+      let pts = 0;
+      PARTWHOLE_QUESTIONS.forEach((q, qi) => {
+        q.parts.forEach((p, pi) => {
+          if ((answers[`${qi}-${pi}`]||"").replace(/\s/g,"") === p.answer) pts++;
+        });
+      });
+      setScore(sc => ({ ...sc, partwhole: pts }));
+    }
+  }, [allChecked]);
+
+  const inputStyle = {
+    padding:"8px 12px", fontSize:16, fontWeight:700, fontFamily:"'JetBrains Mono',monospace",
+    background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.15)",
+    borderRadius:8, color:"#fff", width:100, textAlign:"center",
+  };
+
+  return (
+    <div style={{ animation:"fadeUp .5s ease" }}>
+      <SectionHeader icon="🧩" title="Section 4: Part-to-Part vs Part-to-Whole" subtitle="You can compare one part to another part, or one part to the whole (total). Watch for the word 'total'!" />
+
+      <Callout color={C.teal} title="Key idea">
+        <strong>Part to Part:</strong> red to blue = 3:7 &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Part to Whole:</strong> red to total = 3:10 (where total = 3 + 7)
+      </Callout>
+
+      {PARTWHOLE_QUESTIONS.map((q, qi) => (
+        <div key={qi} style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:14, padding:"18px 20px", marginBottom:18, animation:`fadeUp .4s ease ${qi*0.1}s both` }}>
+          <div style={{ fontSize:15, fontWeight:700, color:"#fff", marginBottom:6 }}>{q.scenario}</div>
+
+          {qi === 0 && <BeadVisual red={3} blue={7} size={14} />}
+          {qi === 1 && (
+            <div style={{ display:"flex", gap:3, flexWrap:"wrap", justifyContent:"center", padding:"8px 0" }}>
+              {Array(6).fill(0).map((_,i) => <span key={"6"+i} style={{ fontSize:16 }}>🟦</span>)}
+              {Array(4).fill(0).map((_,i) => <span key={"7"+i} style={{ fontSize:16 }}>🟧</span>)}
+            </div>
+          )}
+
+          <div style={{ display:"flex", gap:16, flexWrap:"wrap", marginTop:10 }}>
+            {q.parts.map((p, pi) => (
+              <div key={pi} style={{ flex:"1 1 160px" }}>
+                <div style={{ fontSize:12, color: p.type === "part-to-part" ? C.blue : C.orange, fontWeight:700, marginBottom:2, textTransform:"uppercase" }}>{p.type}</div>
+                <div style={{ fontSize:13, color:"rgba(255,255,255,0.6)", marginBottom:6 }}>{p.q} =</div>
+                <input style={{
+                  ...inputStyle,
+                  borderColor: checked[qi] ? ((answers[`${qi}-${pi}`]||"").replace(/\s/g,"") === p.answer ? C.green : C.coral) : "rgba(255,255,255,0.15)",
+                }} value={answers[`${qi}-${pi}`]||""} onChange={e => update(qi,pi,e.target.value)} disabled={!!checked[qi]} />
+                {checked[qi] && (answers[`${qi}-${pi}`]||"").replace(/\s/g,"") !== p.answer && (
+                  <div style={{ fontSize:12, color:C.coral, marginTop:4 }}>→ {p.answer}</div>
+                )}
+              </div>
+            ))}
+          </div>
+          {!checked[qi] && (
+            <button onClick={() => check(qi)} style={{ marginTop:12, padding:"8px 24px", fontSize:12, fontWeight:700, border:`1px solid ${C.teal}`, borderRadius:999, background:"transparent", color:C.teal, cursor:"pointer" }}>Check</button>
+          )}
+        </div>
+      ))}
+
+      {allChecked && (
+        <div style={{ textAlign:"center", marginTop:16, animation:"popIn .4s ease" }}>
+          <div style={{ color:C.green, fontSize:15, fontWeight:700, marginBottom:14 }}>Section complete! {score.partwhole || 0}/{totalParts} correct</div>
+          <button onClick={onNext} style={nextBtnStyle}>Next Section →</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SECTION 5: FINDING UNIT RATES ──────────────────────────────────────────
+
+function UnitRateSection({ onNext, score, setScore }) {
+  const [answers, setAnswers] = useState({});
+  const [checked, setChecked] = useState({});
+  const allChecked = Object.keys(checked).length === UNITRATE_PROBLEMS.length;
+
+  function check(qi) { setChecked(c => ({ ...c, [qi]: true })); }
+
+  useEffect(() => {
+    if (allChecked) {
+      let pts = 0;
+      UNITRATE_PROBLEMS.forEach((p, qi) => {
+        const a = (answers[qi]||"").replace(/[$ ]/g,"");
+        if (parseFloat(a) === parseFloat(p.answer)) pts++;
+      });
+      setScore(sc => ({ ...sc, unitrate: pts }));
+    }
+  }, [allChecked]);
+
+  const icons = { notebooks:"📓", car:"🚗", cookies:"🍪", gas:"⛽" };
+
+  return (
+    <div style={{ animation:"fadeUp .5s ease" }}>
+      <SectionHeader icon="🎯" title="Section 5: Finding Unit Rates" subtitle="Use P.E.R. — Put the rate in a table, Equal groups (divide), Read with units." />
+
+      <Callout color={C.blue} title="P.E.R. method">
+        <strong>P</strong>ut the rate as a fraction or table → <strong>E</strong>qual groups: divide both by the same number → <strong>R</strong>ead the answer: "___ per 1 ___"
+      </Callout>
+
+      {UNITRATE_PROBLEMS.map((p, qi) => (
+        <div key={qi} style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:14, padding:"18px 20px", marginBottom:18, animation:`fadeUp .4s ease ${qi*0.1}s both` }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+            <span style={{ fontSize:28 }}>{icons[p.visual]}</span>
+            <div>
+              <div style={{ fontSize:15, fontWeight:700, color:"#fff" }}>{p.problem}</div>
+              <div style={{ fontSize:13, color:"rgba(255,255,255,0.55)" }}>{p.question}</div>
+            </div>
+          </div>
+
+          <div style={{ display:"flex", gap:16, flexWrap:"wrap", alignItems:"center" }}>
+            <RatioTableVisual
+              label1={p.unit.split(" per ")[1] + "s"}
+              label2={p.unit.split(" per ")[0]}
+              val1={p.count}
+              val2={p.prefix === "$" ? "$"+p.total : p.total}
+              unitVal1="1"
+              unitVal2={p.prefix + p.answer}
+              showAnswer={!!checked[qi]}
+            />
+            <div>
+              <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", fontWeight:700, marginBottom:4, textTransform:"uppercase" }}>Your answer ({p.unit})</div>
+              <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                {p.prefix && <span style={{ fontSize:16, fontWeight:700, color:C.orange }}>{p.prefix}</span>}
+                <input
+                  value={answers[qi]||""}
+                  onChange={e => setAnswers(a => ({ ...a, [qi]: e.target.value }))}
+                  disabled={!!checked[qi]}
+                  placeholder="?"
+                  style={{
+                    padding:"10px 14px", fontSize:18, fontWeight:800, fontFamily:"'JetBrains Mono',monospace",
+                    background:"rgba(255,255,255,0.05)", borderRadius:10, color:"#fff", width:100, textAlign:"center",
+                    border: checked[qi] ? `2px solid ${parseFloat((answers[qi]||"").replace(/[$ ]/g,"")) === parseFloat(p.answer) ? C.green : C.coral}` : "1px solid rgba(255,255,255,0.15)",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {!checked[qi] && (
+            <button onClick={() => check(qi)} style={{ marginTop:12, padding:"8px 24px", fontSize:12, fontWeight:700, border:`1px solid ${C.blue}`, borderRadius:999, background:"transparent", color:C.blue, cursor:"pointer" }}>Check</button>
+          )}
+          {checked[qi] && (
+            <div style={{ marginTop:10, fontSize:13, color: parseFloat((answers[qi]||"").replace(/[$ ]/g,"")) === parseFloat(p.answer) ? C.green : C.coral }}>
+              {parseFloat((answers[qi]||"").replace(/[$ ]/g,"")) === parseFloat(p.answer)
+                ? `✓ Correct! ${p.prefix}${p.answer} ${p.unit}`
+                : `✗ The answer is ${p.prefix}${p.answer} ${p.unit} (${p.total} ÷ ${p.count} = ${p.answer})`
+              }
+            </div>
+          )}
+        </div>
+      ))}
+
+      {allChecked && (
+        <div style={{ textAlign:"center", marginTop:16, animation:"popIn .4s ease" }}>
+          <div style={{ color:C.green, fontSize:15, fontWeight:700, marginBottom:14 }}>Section complete! {score.unitrate || 0}/{UNITRATE_PROBLEMS.length} correct</div>
+          <button onClick={onNext} style={nextBtnStyle}>Next Section →</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SECTION 6: REAL WORLD COMPARISON ───────────────────────────────────────
+
+function RealWorldSection({ onNext, score, setScore }) {
+  const [answers, setAnswers] = useState({});
+  const [checked, setChecked] = useState({});
+  const allChecked = Object.keys(checked).length === REALWORLD_PROBLEMS.length;
+
+  function check(qi) { setChecked(c => ({ ...c, [qi]: true })); }
+
+  useEffect(() => {
+    if (allChecked) {
+      let pts = 0;
+      REALWORLD_PROBLEMS.forEach((p, qi) => {
+        if ((answers[`${qi}-better`]||"") === p.better) pts++;
+      });
+      setScore(sc => ({ ...sc, realworld: pts }));
+    }
+  }, [allChecked]);
+
+  return (
+    <div style={{ animation:"fadeUp .5s ease" }}>
+      <SectionHeader icon="🌍" title="Section 6: Real-World Comparisons" subtitle="Use unit rates to compare and make smart decisions. Find the unit rate for each, then pick the better option." />
+
+      {REALWORLD_PROBLEMS.map((p, qi) => (
+        <div key={qi} style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:14, padding:"18px 20px", marginBottom:18, animation:`fadeUp .4s ease ${qi*0.1}s both` }}>
+          <div style={{ fontSize:15, fontWeight:700, color:"#fff", marginBottom:6 }}>{p.scenario}</div>
+          <div style={{ fontSize:13, color:"rgba(255,255,255,0.55)", marginBottom:14 }}>{p.question}</div>
+
+          <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:14 }}>
+            {[["A", p.brandA], ["B", p.brandB]].map(([key, brand]) => (
+              <div key={key} style={{
+                flex:"1 1 180px", padding:"14px 16px", borderRadius:10,
+                background: (answers[`${qi}-better`] === key && !checked[qi]) ? `${C.blue}20` : "rgba(255,255,255,0.03)",
+                border: (answers[`${qi}-better`] === key) ? `1px solid ${checked[qi] ? (key === p.better ? C.green : C.coral) : C.blue}` : "1px solid rgba(255,255,255,0.08)",
+                cursor: checked[qi] ? "default" : "pointer",
+                transition: "all .2s",
+              }} onClick={() => !checked[qi] && setAnswers(a => ({ ...a, [`${qi}-better`]: key }))}>
+                <div style={{ fontSize:14, fontWeight:800, color:"#fff", marginBottom:4 }}>{brand.name}</div>
+                <div style={{ fontSize:13, color:"rgba(255,255,255,0.5)" }}>{brand.amount} for {brand.price}</div>
+                {checked[qi] && (
+                  <div style={{ fontSize:12, color:C.orange, marginTop:6, fontWeight:700 }}>
+                    Unit rate: {qi === 0 ? `$${key==="A"?p.answerA:p.answerB}/oz` : `${key==="A"?p.answerA:p.answerB} mph`}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {!checked[qi] && answers[`${qi}-better`] && (
+            <button onClick={() => check(qi)} style={{ padding:"8px 24px", fontSize:12, fontWeight:700, border:`1px solid ${C.teal}`, borderRadius:999, background:"transparent", color:C.teal, cursor:"pointer" }}>Check</button>
+          )}
+          {checked[qi] && (
+            <Callout color={answers[`${qi}-better`] === p.better ? C.green : C.coral} style={{ marginTop:8, marginBottom:0 }}>
+              {answers[`${qi}-better`] === p.better ? "✓ " : "✗ "}{p.explanation}
+            </Callout>
+          )}
+        </div>
+      ))}
+
+      {allChecked && (
+        <div style={{ textAlign:"center", marginTop:16, animation:"popIn .4s ease" }}>
+          <div style={{ color:C.green, fontSize:15, fontWeight:700, marginBottom:14 }}>Section complete! {score.realworld || 0}/{REALWORLD_PROBLEMS.length} correct</div>
+          <button onClick={onNext} style={nextBtnStyle}>Next Section →</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SECTION 7: MIXED PRACTICE ──────────────────────────────────────────────
+
+function MixedSection({ onNext, score, setScore }) {
+  const [answers, setAnswers] = useState({});
+  const [revealed, setRevealed] = useState({});
+  const allDone = Object.keys(revealed).length === MIXED_PRACTICE.length;
+
+  function select(qi, oi) {
+    if (revealed[qi] !== undefined) return;
+    setAnswers(a => ({ ...a, [qi]: oi }));
+  }
+  function check(qi) {
+    if (answers[qi] === undefined) return;
+    setRevealed(r => ({ ...r, [qi]: true }));
+  }
+
+  useEffect(() => {
+    if (allDone) {
+      const pts = MIXED_PRACTICE.reduce((s, q, i) => s + (answers[i] === q.correct ? 1 : 0), 0);
+      setScore(sc => ({ ...sc, mixed: pts }));
+    }
+  }, [allDone]);
+
+  return (
+    <div style={{ animation:"fadeUp .5s ease" }}>
+      <SectionHeader icon="🔥" title="Section 7: Mixed Practice" subtitle="Show what you know! These questions mix everything from the lesson." />
+
+      {MIXED_PRACTICE.map((q, qi) => (
+        <div key={qi} style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:14, padding:"18px 20px", marginBottom:16, animation:`fadeUp .4s ease ${qi*0.06}s both` }}>
+          <div style={{ fontSize:11, color:C.orange, fontWeight:800, textTransform:"uppercase", letterSpacing:".08em", marginBottom:4 }}>Question {qi+1}</div>
+          <div style={{ fontSize:15, fontWeight:700, color:"#fff", marginBottom:12 }}>{q.question}</div>
+          {q.options.map((opt, oi) => (
+            <OptionButton key={oi} text={opt} selected={answers[qi]===oi} correct={oi===q.correct} revealed={!!revealed[qi]} onClick={() => select(qi,oi)} />
+          ))}
+          {!revealed[qi] && answers[qi] !== undefined && (
+            <button onClick={() => check(qi)} style={{ marginTop:4, padding:"8px 24px", fontSize:12, fontWeight:700, border:`1px solid ${C.orange}`, borderRadius:999, background:"transparent", color:C.orange, cursor:"pointer" }}>Check</button>
+          )}
+          {revealed[qi] && answers[qi] !== q.correct && (
+            <div style={{ marginTop:8, fontSize:13, color:C.coral }}>Correct: <strong>{q.options[q.correct]}</strong></div>
+          )}
+        </div>
+      ))}
+
+      {allDone && (
+        <div style={{ textAlign:"center", marginTop:16, animation:"popIn .4s ease" }}>
+          <div style={{ color:C.green, fontSize:15, fontWeight:700, marginBottom:14 }}>Section complete! {score.mixed || 0}/{MIXED_PRACTICE.length} correct</div>
+          <button onClick={onNext} style={nextBtnStyle}>Next Section →</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SECTION 8: EXIT TICKET ─────────────────────────────────────────────────
+
+function ExitTicketSection({ onNext, score, setScore }) {
+  const [answers, setAnswers] = useState({});
+  const [checked, setChecked] = useState(false);
+
+  function doCheck() {
+    setChecked(true);
+    let pts = 0;
+    EXIT_TICKET.forEach((q, qi) => {
+      if (q.type === "mc") {
+        if (answers[qi] === q.correct) pts++;
+      } else {
+        const a = (answers[`fill-${qi}`]||"").replace(/[$ ]/g,"").trim();
+        if (a === q.answer) pts++;
+      }
+    });
+    setScore(sc => ({ ...sc, exit: pts }));
+  }
+
+  const allAnswered = EXIT_TICKET.every((q, qi) => {
+    if (q.type === "mc") return answers[qi] !== undefined;
+    return (answers[`fill-${qi}`]||"").trim() !== "";
+  });
+
+  return (
+    <div style={{ animation:"fadeUp .5s ease" }}>
+      <SectionHeader icon="🎫" title="Exit Ticket" subtitle="Last step! Show Mr. Omar you've mastered ratios and unit rates." />
+
+      <Callout color={C.coral} title="Important">
+        Answer ALL questions before checking. You only get one chance — just like a real exit ticket!
+      </Callout>
+
+      {EXIT_TICKET.map((q, qi) => (
+        <div key={qi} style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:14, padding:"18px 20px", marginBottom:16, animation:`fadeUp .4s ease ${qi*0.08}s both` }}>
+          <div style={{ fontSize:11, color:C.teal, fontWeight:800, textTransform:"uppercase", letterSpacing:".08em", marginBottom:4 }}>Question {qi+1}</div>
+          <div style={{ fontSize:15, fontWeight:700, color:"#fff", marginBottom:12 }}>{q.question}</div>
+
+          {q.type === "mc" && q.options.map((opt, oi) => (
+            <OptionButton key={oi} text={opt} selected={answers[qi]===oi} correct={oi===q.correct} revealed={checked} onClick={() => !checked && setAnswers(a => ({ ...a, [qi]: oi }))} />
+          ))}
+
+          {q.type === "fill" && (
+            <div>
+              <input
+                value={answers[`fill-${qi}`]||""}
+                onChange={e => setAnswers(a => ({ ...a, [`fill-${qi}`]: e.target.value }))}
+                disabled={checked}
+                placeholder="Type your answer"
+                style={{
+                  padding:"10px 14px", fontSize:16, fontWeight:700, fontFamily:"'JetBrains Mono',monospace",
+                  background:"rgba(255,255,255,0.05)", borderRadius:10, color:"#fff", width:180, textAlign:"center",
+                  border: checked ? `2px solid ${(answers[`fill-${qi}`]||"").replace(/[$ ]/g,"").trim() === q.answer ? C.green : C.coral}` : "1px solid rgba(255,255,255,0.15)",
+                }}
+              />
+              {checked && (answers[`fill-${qi}`]||"").replace(/[$ ]/g,"").trim() !== q.answer && (
+                <div style={{ marginTop:6, fontSize:13, color:C.coral }}>Correct answer: <strong>{q.answer}</strong></div>
+              )}
+            </div>
+          )}
+        </div>
+      ))}
+
+      {!checked && (
+        <div style={{ textAlign:"center", marginTop:16 }}>
+          <button onClick={doCheck} disabled={!allAnswered} style={{ ...nextBtnStyle, opacity: allAnswered ? 1 : 0.35, cursor: allAnswered ? "pointer" : "not-allowed" }}>Submit Exit Ticket</button>
+        </div>
+      )}
+
+      {checked && (
+        <div style={{ textAlign:"center", marginTop:16, animation:"popIn .4s ease" }}>
+          <div style={{ color:C.green, fontSize:15, fontWeight:700, marginBottom:14 }}>Exit ticket submitted! {score.exit || 0}/{EXIT_TICKET.length} correct</div>
+          <button onClick={onNext} style={nextBtnStyle}>See My Results →</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── RESULTS ────────────────────────────────────────────────────────────────
+
+function ResultsSection({ score, studentName, onRestart }) {
+  const [copied, setCopied] = useState(false);
+
+  const sections = [
+    { key:"vocab", label:"Vocabulary", total:VOCAB_QUESTIONS.length, icon:"📖" },
+    { key:"writing", label:"Writing Ratios", total:WRITING_RATIOS.length*3, icon:"✏️" },
+    { key:"order", label:"Order Matters", total:ORDER_QUESTIONS.reduce((s,q)=>s+q.parts.length,0), icon:"🔄" },
+    { key:"partwhole", label:"Part vs Whole", total:PARTWHOLE_QUESTIONS.reduce((s,q)=>s+q.parts.length,0), icon:"🧩" },
+    { key:"unitrate", label:"Unit Rates", total:UNITRATE_PROBLEMS.length, icon:"🎯" },
+    { key:"realworld", label:"Real World", total:REALWORLD_PROBLEMS.length, icon:"🌍" },
+    { key:"mixed", label:"Mixed Practice", total:MIXED_PRACTICE.length, icon:"🔥" },
+    { key:"exit", label:"Exit Ticket", total:EXIT_TICKET.length, icon:"🎫" },
+  ];
+
+  const totalPts = sections.reduce((s, sec) => s + (score[sec.key] || 0), 0);
+  const totalMax = sections.reduce((s, sec) => s + sec.total, 0);
+  const pct = Math.round((totalPts / totalMax) * 100);
+  const code = generateCode(studentName, score);
+
+  let grade = "Keep Practicing!", gradeColor = C.coral, emoji = "💪";
+  if (pct >= 90) { grade = "Ratio Master!"; gradeColor = C.green; emoji = "🏆"; }
+  else if (pct >= 75) { grade = "Great Job!"; gradeColor = C.blue; emoji = "⭐"; }
+  else if (pct >= 60) { grade = "Good Effort!"; gradeColor = C.gold; emoji = "👍"; }
+
+  function copyResults() {
+    const lines = [
+      `RATIOS & UNIT RATES — WORKSHEET RESULTS`,
+      `Student: ${studentName}`,
+      `Date: ${new Date().toLocaleDateString()}`,
+      `Code: ${code}`,
+      ``,
+      `Overall: ${totalPts}/${totalMax} (${pct}%)`,
+      `Grade: ${grade}`,
+      ``,
+      `SECTION BREAKDOWN:`,
+      ...sections.map(s => `  ${s.label}: ${score[s.key]||0}/${s.total}`),
+    ];
+    navigator.clipboard.writeText(lines.join("\n")).then(() => setCopied(true));
+    setTimeout(() => setCopied(false), 2500);
+  }
+
+  return (
+    <div style={{ textAlign:"center", maxWidth:540, margin:"0 auto", animation:"fadeUp .6s ease" }}>
+      <div style={{ fontSize:56, marginBottom:8, animation:"float 3s ease-in-out infinite" }}>{emoji}</div>
+      <h2 style={{ fontSize:28, fontWeight:900, color:gradeColor, marginBottom:4 }}>{grade}</h2>
+      <div style={{ fontSize:15, color:"rgba(255,255,255,0.5)", marginBottom:24 }}>{studentName}'s Results</div>
+
+      <div style={{ position:"relative", width:170, height:170, margin:"0 auto 28px" }}>
+        <svg viewBox="0 0 170 170" style={{ transform:"rotate(-90deg)" }}>
+          <circle cx="85" cy="85" r="72" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="12" />
+          <circle cx="85" cy="85" r="72" fill="none" stroke={gradeColor} strokeWidth="12" strokeDasharray={(pct/100)*452+" 452"} strokeLinecap="round" style={{ transition:"stroke-dasharray 1.2s ease" }} />
+        </svg>
+        <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+          <div style={{ fontSize:38, fontWeight:900, color:"#fff" }}>{pct}%</div>
+          <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)" }}>{totalPts}/{totalMax}</div>
+        </div>
+      </div>
+
+      <div style={{ textAlign:"left", marginBottom:24 }}>
+        {sections.map((sec) => {
+          const pts = score[sec.key] || 0;
+          const p = sec.total > 0 ? Math.round((pts/sec.total)*100) : 0;
+          return (
+            <div key={sec.key} style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 14px", background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:10, marginBottom:8, animation:`fadeUp .3s ease ${sections.indexOf(sec)*0.05}s both` }}>
+              <span style={{ fontSize:18 }}>{sec.icon}</span>
+              <span style={{ flex:1, fontSize:13, color:"rgba(255,255,255,0.75)", fontWeight:600 }}>{sec.label}</span>
+              <div style={{ width:80, height:6, background:"rgba(255,255,255,0.06)", borderRadius:999, overflow:"hidden" }}>
+                <div style={{ width:p+"%", height:"100%", background: p===100 ? C.green : p>=60 ? C.blue : C.coral, borderRadius:999, transition:"width .6s" }} />
+              </div>
+              <span style={{ fontSize:13, fontWeight:700, color:"#fff", minWidth:44, textAlign:"right", fontFamily:"'JetBrains Mono',monospace" }}>{pts}/{sec.total}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Completion Code */}
+      <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:14, padding:"20px", marginBottom:20 }}>
+        <div style={{ fontSize:11, fontWeight:800, color:C.orange, textTransform:"uppercase", letterSpacing:".08em", marginBottom:8 }}>Your Completion Code</div>
+        <div style={{ fontSize:28, fontWeight:900, fontFamily:"'JetBrains Mono',monospace", color:"#fff", letterSpacing:".1em", marginBottom:12 }}>{code}</div>
+        <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginBottom:14 }}>Share this code with Mr. Omar or copy your full results below.</div>
+        <button onClick={copyResults} style={{
+          padding:"10px 28px", fontSize:13, fontWeight:700, border:`1px solid ${C.teal}`,
+          borderRadius:999, background: copied ? `${C.green}20` : "transparent",
+          color: copied ? C.green : C.teal, cursor:"pointer", transition:"all .3s",
+        }}>
+          {copied ? "✓ Copied to Clipboard!" : "📋 Copy Full Results"}
+        </button>
+      </div>
+
+      <button onClick={onRestart} style={{ padding:"12px 36px", fontSize:14, fontWeight:700, border:"1px solid rgba(255,255,255,0.12)", borderRadius:999, background:"transparent", color:"rgba(255,255,255,0.5)", cursor:"pointer", transition:"all .2s" }}>↻ Try Again</button>
+    </div>
+  );
+}
+
+// ─── APP ────────────────────────────────────────────────────────────────────
+
+function App() {
+  const [section, setSection] = useState(0);
+  const [studentName, setStudentName] = useState("");
+  const [score, setScore] = useState({ vocab:0, writing:0, order:0, partwhole:0, unitrate:0, realworld:0, mixed:0, exit:0 });
+  const next = () => setSection(s => Math.min(s + 1, SECTIONS.length - 1));
+  const restart = () => {
+    setSection(0);
+    setScore({ vocab:0, writing:0, order:0, partwhole:0, unitrate:0, realworld:0, mixed:0, exit:0 });
+  };
+
+  useEffect(() => {
+    const el = document.getElementById("ws-top");
+    if (el) el.scrollIntoView({ behavior:"smooth" });
+  }, [section]);
+
+  return (
+    <div id="ws-top" style={{ maxWidth: 680, margin: "0 auto", padding: "32px 20px 60px" }}>
+      {section > 0 && section < SECTIONS.length - 1 && (
+        <div style={{ marginBottom: 20 }}>
+          <SectionNav idx={section} onNav={setSection} />
+          <div style={{ marginTop: 8 }}><ProgressBar current={section} total={SECTIONS.length} /></div>
+        </div>
+      )}
+      {section === 0 && <Welcome onNext={next} studentName={studentName} setStudentName={setStudentName} />}
+      {section === 1 && <VocabSection onNext={next} score={score} setScore={setScore} />}
+      {section === 2 && <WritingSection onNext={next} score={score} setScore={setScore} />}
+      {section === 3 && <OrderSection onNext={next} score={score} setScore={setScore} />}
+      {section === 4 && <PartWholeSection onNext={next} score={score} setScore={setScore} />}
+      {section === 5 && <UnitRateSection onNext={next} score={score} setScore={setScore} />}
+      {section === 6 && <RealWorldSection onNext={next} score={score} setScore={setScore} />}
+      {section === 7 && <MixedSection onNext={next} score={score} setScore={setScore} />}
+      {section === 8 && <ExitTicketSection onNext={next} score={score} setScore={setScore} />}
+      {section === 9 && <ResultsSection score={score} studentName={studentName} onRestart={restart} />}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
